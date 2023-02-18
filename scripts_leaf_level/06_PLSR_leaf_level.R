@@ -300,7 +300,6 @@ write.csv(out.jk.coefs,file=file.path(outdir,paste0(inVar,'_Jackkife_PLSR_Coeffi
           row.names = F) #save data
 
 ## Export Model Output----
-
 # Observed versus predicted
 write.csv(cal.plsr.output,file = file.path(outdir, paste0(inVar, '_Observed_PLSR_CV_Pred_', ncomps,
                                                        'comp.csv')), row.names = F)
