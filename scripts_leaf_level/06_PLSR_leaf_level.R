@@ -92,7 +92,7 @@ ncomps #show result
 ## Fit final model----
 segs <- 100 #define number of segments for cross-validation
 
-plsr.out <- plsr(as.formula(paste(inVar, "~", "Spectra")), scale = , ncomp = ncomps, validation = "CV", #If validation = "CV", cross-validation is performed.
+plsr.out <- plsr(as.formula(paste(inVar, "~", "Spectra")), scale = F, ncomp = ncomps, validation = "CV", #If validation = "CV", cross-validation is performed.
                  segments = segs, segment.type = "random", trace = F, data = cal.plsr.data, method = "oscorespls")
 
 fit <- plsr.out$fitted.values[, 1, ncomps] #store predicted values in R object
