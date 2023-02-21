@@ -53,7 +53,6 @@ val.plsr.data <- split_data$val_data
 head(val.plsr.data)[1:8]
 
 ## Format PLSR data for model fitting----
-
 # Calibration dataset
 cal_spec <- as.matrix(cal.plsr.data[, which(names(cal.plsr.data) %in% paste0("Wave_", wv))])
 cal.plsr.data <- data.frame(cal.plsr.data[, which(names(cal.plsr.data) %notin% paste0("Wave_", wv))],
@@ -77,6 +76,8 @@ write.csv(val.plsr.data, file = file.path(outdir, paste0(inVar, '_Val_PLSR_Datas
           row.names = F)
 
 ## Use permutation to determine the optimal number of components----
+pdf(paste0(inVar,"_PLSR_Component_Selection.pdf")) #open a pdf device and choose file name
+
 ncomps <- find_optimal_components(
   dataset = cal.plsr.data,
   targetVariable = inVar,
@@ -89,6 +90,8 @@ ncomps <- find_optimal_components(
 )
 ncomps #show result
 
+dev.off() #close the pdf device to save plot
+
 ## Fit final model----
 segs <- 100 #define number of segments for cross-validation
 
@@ -100,6 +103,8 @@ fit <- plsr.out$fitted.values[, 1, ncomps] #store predicted values in R object
 pls.options(parallel = NULL) #specify how the cross-validation (CV) should be performed. If NULL, the CV is done serially.
 
 ## External validation fit stats----
+pdf(paste0(inVar,"_Validation_RMSEP_R2_by_Component.pdf")) #open a pdf device
+
 par(mfrow = c(1, 2))
 
 # Function to estimate the root mean squared error of prediction (RMSEP)
@@ -114,9 +119,11 @@ box(lwd = 2.2) #box around plot with line width 2.2
 pls::R2(plsr.out, newdata = val.plsr.data)
 
 # Plot result
-plot(pls::R2(plsr.out, estimate=c("test"),newdata = val.plsr.data), main = "MODEL R2",
+plot(pls::R2(plsr.out, estimate = c("test"),newdata = val.plsr.data), main = "MODEL R2",
      xlab = "Number of Components", ylab = "Model Validation R2", lty = 1, col = "black", cex = 1.5, lwd = 2)
 box(lwd = 2.2)
+
+dev.off() #close the pdf device to save plot
 
 ## PLSR fit observed vs. predicted plot data----
 # Calibration
@@ -168,7 +175,7 @@ cal_resid_histogram <- ggplot(cal.plsr.output, aes(x = PLSR_CV_Residuals)) +
              linetype = "dashed", linewidth = 0.8) +
   theme_bw() + 
   theme(axis.text = element_text(size = 6), legend.position="none",
-        axis.title = element_text(size = 6, face="bold"), 
+        axis.title = element_text(size = 6, face = "bold"), 
         axis.text.x = element_text(angle = 0,vjust = 0.5),
         panel.border = element_rect(linetype = "solid", fill = NA, linewidth = 1))
 
@@ -205,15 +212,21 @@ val_resid_histogram <- ggplot(val.plsr.output, aes(x = PLSR_Residuals)) +
 
 val_resid_histogram #show plot
 
-# plot cal/val side-by-side
+# Plot cal/val side-by-side
+pdf(paste0(inVar,"_Cal_Val_Scatterplots.pdf")) #open a pdf device
+
 scatterplots <- grid.arrange(cal_scatter_plot, val_scatter_plot, cal_resid_histogram, 
                              val_resid_histogram, nrow = 2, ncol = 2)
+
+dev.off() #close the pdf device to save plot
 
 ## Generate Coefficient and VIP plots----
 vips <- spectratrait::VIP(plsr.out)[ncomps,]
 
 # Plot results
-par(mfrow=c(2,1))
+pdf(paste0(inVar,"_Coefficient_VIP_plot.pdf")) #open a pdf device
+
+par(mfrow = c(2, 1))
 
 plot(plsr.out$coefficients[, , ncomps], x = wv, xlab = "Wavelength (nm)",
      ylab = "Regression coefficients", lwd = 2, type = 'l', ylim = c(-0.5, 2))
@@ -223,6 +236,8 @@ plot(seq(Start.wave, End.wave,1), vips, xlab = "Wavelength (nm)", ylab = "VIP", 
 lines(seq(Start.wave, End.wave, 1), vips, lwd = 3)
 abline(h = 0.8, lty = 2, col = "dark grey")
 box(lwd = 2.2)
+
+dev.off() #close the pdf device to save plot
 
 ## Model uncertainty analysis----
 seg <- 100
@@ -257,12 +272,16 @@ val.plsr.output$UPI <- val.plsr.output$PLSR_Predicted + 1.96*sd_tot
 head(val.plsr.output)
 
 # JK regression coefficient plot
+pdf(paste0(inVar,"_Jackknife_Regression_Coefficients.pdf")) #open a pdf device
+
 par(mfrow=c(1,1))
 
 spectratrait::f.plot.coef(Z = t(Jackknife_coef), wv = wv, 
                           plot_label = "Jackknife regression coefficients", position = "bottomleft")
 abline(h = 0, lty = 2, col = "grey50")
 box(lwd = 2.2)
+
+dev.off() #close the pdf device to save plot
 
 # JK validation plot
 rmsep_percrmsep <- spectratrait::percent_rmse(plsr_dataset = val.plsr.output, 
@@ -279,38 +298,42 @@ expr[[3]] <- bquote("%RMSEP" ==. (round(perc_RMSEP,2)))
 rng_vals <- c(min(val.plsr.output$LPI), max(val.plsr.output$UPI))
 
 # Plot results
+pdf(paste0(inVar,"_PLSR_Validation_Scatterplot.pdf")) #open a pdf device
+
 par(mfrow = c(1, 1), mar = c(4.2, 5.3, 1, 0.4), oma = c(0, 0.1, 0, 0.2))
 
 plotrix::plotCI(val.plsr.output$PLSR_Predicted,val.plsr.output[, inVar], 
                 li = val.plsr.output$LPI, ui = val.plsr.output$UPI, gap = 0.009, sfrac = 0.004, 
                 lwd = 1.6, xlim = c(rng_vals[1], rng_vals[2]), ylim = c(rng_vals[1], rng_vals[2]), 
                 err = "x", pch = 21, col = "black", pt.bg = scales::alpha("grey70", 0.7), scol = "grey50",
-                cex = 2, xlab = paste0("Predicted ", paste(inVar), " (units)"),
-                ylab = paste0("Observed ", paste(inVar), " (units)"),
+                cex = 2, xlab = paste0("Predicted ", paste(inVar), " (m2/kg)"),
+                ylab = paste0("Observed ", paste(inVar), " (m2/kg)"),
                 cex.axis = 1.5, cex.lab = 1.8)
 abline(0, 1, lty = 2,lw = 2)
 legend("topleft", legend = expr, bty = "n", cex = 1.5)
 box(lwd = 2.2)
 
+dev.off() #close the pdf device to save plot
+
 ## Output jackknife results----
 # JK Coefficents
 out.jk.coefs <- data.frame(Iteration = seq(1, seg, 1), Intercept = Jackknife_intercept, t(Jackknife_coef))
 head(out.jk.coefs)[1:6]
-write.csv(out.jk.coefs,file=file.path(outdir,paste0(inVar,'_Jackkife_PLSR_Coefficients.csv')),
+write.csv(out.jk.coefs,file = file.path(outdir,paste0(inVar,"_Jackkife_PLSR_Coefficients.csv")),
           row.names = F) #save data
 
 ## Export Model Output----
 # Observed versus predicted
-write.csv(cal.plsr.output,file = file.path(outdir, paste0(inVar, '_Observed_PLSR_CV_Pred_', ncomps,
-                                                       'comp.csv')), row.names = F)
+write.csv(cal.plsr.output, file = file.path(outdir, paste0(inVar, "_Observed_PLSR_CV_Pred_", ncomps,
+                                                       "comp.csv")), row.names = F)
 
 # Validation data
-write.csv(val.plsr.output,file = file.path(outdir, paste0(inVar, '_Validation_PLSR_Pred_', ncomps,
-                                                       'comp.csv')), row.names = F)
+write.csv(val.plsr.output, file = file.path(outdir, paste0(inVar, "_Validation_PLSR_Pred_", ncomps,
+                                                       "comp.csv")), row.names = F)
 
 # Model coefficients
 coefs <- coef(plsr.out, ncomp = ncomps, intercept = T)
-write.csv(coefs, file = file.path(outdir, paste0(inVar, '_PLSR_Coefficients_', ncomps, 'comp.csv')),
+write.csv(coefs, file = file.path(outdir, paste0(inVar, "_PLSR_Coefficients_", ncomps, "comp.csv")),
           row.names = T)
 
 # PLSR VIP
