@@ -314,4 +314,4 @@ write.csv(coefs, file = file.path(outdir, paste0(inVar, '_PLSR_Coefficients_', n
           row.names = T)
 
 # PLSR VIP
-write.csv(vips, file = file.path(outdir, paste0(inVar, '_PLSR_VIPs_', ncomps,'comp.csv')))
+write.csv(vips, file = file.path(outdir, paste0(inVar, "_PLSR_VIPs_", ncomps,"comp.csv")))
