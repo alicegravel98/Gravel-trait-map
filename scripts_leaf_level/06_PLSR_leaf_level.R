@@ -100,7 +100,7 @@ fit <- plsr.out$fitted.values[, 1, ncomps] #store predicted values in R object
 pls.options(parallel = NULL) #specify how the cross-validation (CV) should be performed. If NULL, the CV is done serially.
 
 ## External validation fit stats----
-par(mfrow=c(1,2))
+par(mfrow = c(1, 2))
 
 # Function to estimate the root mean squared error of prediction (RMSEP)
 pls::RMSEP(plsr.out, newdata = val.plsr.data)
