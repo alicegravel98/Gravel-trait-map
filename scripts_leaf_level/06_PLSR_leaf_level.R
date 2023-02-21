@@ -9,7 +9,7 @@ library(pls)
 library(gridExtra)
 
 ## Set working directory----
-outdir <- setwd("/Users/alicegravel/Desktop/DossieR/output_plsr_leaf_level")
+outdir <- setwd("/Users/alicegravel/Desktop/DossieR/Gravel-trait-map/output_plsr_leaf_level")
 
 # Import PLSR data----
 plsr_data <- read.csv("/Users/alicegravel/Documents/École/MAÎTRISE/DATA/Leaf Spectra/plsr_data.csv", header = T, sep = ",", check.names = F)
@@ -119,7 +119,7 @@ box(lwd = 2.2) #box around plot with line width 2.2
 pls::R2(plsr.out, newdata = val.plsr.data)
 
 # Plot result
-plot(pls::R2(plsr.out, estimate = c("test"),newdata = val.plsr.data), main = "MODEL R2",
+plot(pls::R2(plsr.out, estimate = c("test"), newdata = val.plsr.data), main = "MODEL R2",
      xlab = "Number of Components", ylab = "Model Validation R2", lty = 1, col = "black", cex = 1.5, lwd = 2)
 box(lwd = 2.2)
 
@@ -229,13 +229,12 @@ pdf(paste0(inVar,"_Coefficient_VIP_plot.pdf")) #open a pdf device
 par(mfrow = c(2, 1))
 
 plot(plsr.out$coefficients[, , ncomps], x = wv, xlab = "Wavelength (nm)",
-     ylab = "Regression coefficients", lwd = 2, type = 'l', ylim = c(-0.5, 2))
-box(lwd = 2.2)
+     ylab = "Regression coefficients", lwd = 2, type = 'l', ylim = c(-2, 2))
 
-plot(seq(Start.wave, End.wave,1), vips, xlab = "Wavelength (nm)", ylab = "VIP", cex = 0.01)
+plot(seq(Start.wave, End.wave,1), vips, xlab = "Wavelength (nm)", ylab = "VIP", cex = 0.01, ylim = c(0, 2))
+
 lines(seq(Start.wave, End.wave, 1), vips, lwd = 3)
 abline(h = 0.8, lty = 2, col = "dark grey")
-box(lwd = 2.2)
 
 dev.off() #close the pdf device to save plot
 
@@ -274,7 +273,7 @@ head(val.plsr.output)
 # JK regression coefficient plot
 pdf(paste0(inVar,"_Jackknife_Regression_Coefficients.pdf")) #open a pdf device
 
-par(mfrow=c(1,1))
+par(mfrow = c(1, 1))
 
 spectratrait::f.plot.coef(Z = t(Jackknife_coef), wv = wv, 
                           plot_label = "Jackknife regression coefficients", position = "bottomleft")
@@ -308,10 +307,9 @@ plotrix::plotCI(val.plsr.output$PLSR_Predicted,val.plsr.output[, inVar],
                 err = "x", pch = 21, col = "black", pt.bg = scales::alpha("grey70", 0.7), scol = "grey50",
                 cex = 2, xlab = paste0("Predicted ", paste(inVar), " (m2/kg)"),
                 ylab = paste0("Observed ", paste(inVar), " (m2/kg)"),
-                cex.axis = 1.5, cex.lab = 1.8)
+                cex.axis = 1, cex.lab = 1.2)
 abline(0, 1, lty = 2,lw = 2)
 legend("topleft", legend = expr, bty = "n", cex = 1.5)
-box(lwd = 2.2)
 
 dev.off() #close the pdf device to save plot
 
